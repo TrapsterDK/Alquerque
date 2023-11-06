@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Bitboard viewer</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: "Arial";
+                font-weight: 600;
+                color: #fff;
+                background: #161616;
+            }
+            #root {
+                width: 100%;
+                height: 100%;
+                display: grid;
+                grid-template-columns: 1fr;
+                grid-template-rows: 100vh;
+                align-items: center;
+                justify-items: center;
+            }
+            #grid {
+                display: grid;
+                grid-template-columns: repeat(5, 3fr);
+                grid-gap: 2px;
+                text-align: center;
+            }
+            .bit {
+                display: grid;
+                place-items: center;
+                background-color: #3c3c3c;
+                box-sizing: border-box;
+                float: left;
+                border-radius: 5px;
+                transition: 0.2s;
+                width: 70px;
+                height: 70px;
+            }
+            #empty {
+                width: 100%;
+                grid-column: span 4;
+                background-color: #2f2f2f;
+                color: #fff;
+            }
+            #bit32,
+            #bit64 {
+                grid-column: span 5;
+                width: 100%;
+            }
+            .bit:hover {
+                background-color: #2f2f2f;
+            }
+            .active {
+                background: #fff !important;
+                color: #000 !important;
+            }
+            input {
+                outline: none;
+                background: transparent;
+                border: none;
+                text-align: center;
+                width: 100%;
+                height: 100%;
+                font-family: "Arial";
+                font-weight: 600;
+                color: #fff;
+                font-size: 20px;
+            }
+            form:hover {
+                background-color: #2f2f2f;
+            }
+            form {
+                height: 50px;
+                border-radius: 5px;
+                margin-top: 10px;
+                width: 100%;
+                background-color: #232323;
+            }
+            .form-container {
+                position: relative;
+            }
+            #copy {
+                position: absolute;
+                width: 24px;
+                height: 24px;
+                cursor: pointer;
+                right: 15px;
+                top: 0;
+                bottom: 0;
+                margin: auto;
+            }
+            .copy-icon:active {
+                transform: scale(0.9);
+                user-select: none;
+            }
+            #copy-tooltip {
+                visibility: hidden;
+                width: 140px;
+                background-color: #555;
+                color: #fff;
+                text-align: center;
+                border-radius: 6px;
+                padding: 5px;
+                position: absolute;
+                z-index: 5;
+                bottom: 110%;
+                left: 50%;
+                margin-left: -75px;
+                opacity: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root">
+            <div>
+                <div id="grid">
+                    <div class="bit" id="empty">None</div>
+                    <div class="bit" id="bit32">Rest of 32 bit</div>
+                    <div class="bit" id="bit64">Rest of 64 bit</div>
+                </div>
+                <div class="form-container">
+                    <form>
+                        <input id="hexinput" value="0x0" />
+                    </form>
+                    <div id="copy">
+                        <svg
+                            class="copy-icon"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 512 512"
+                        >
+                            <rect
+                                x="128"
+                                y="128"
+                                width="336"
+                                height="336"
+                                rx="57"
+                                ry="57"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linejoin="round"
+                                stroke-width="32"
+                            ></rect>
+                            <path
+                                d="M383.5 128l.5-24a56.16 56.16 0 00-56-56H112a64.19 64.19 0 00-64 64v216a56.16 56.16 0 0056 56h24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="32"
+                            ></path>
+                        </svg>
+                        <span id="copy-tooltip">Copied!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            let tooltip = document.getElementById("copy");
+            let tooltipText = document.getElementById("copy-tooltip");
+            let hexinput = document.getElementById("hexinput");
+
+            tooltip.addEventListener("click", () => {
+                navigator.clipboard.writeText(hexinput.value);
+
+                tooltipText.style.visibility = "visible";
+                tooltipText.style.opacity = "1";
+                setTimeout(() => {
+                    tooltipText.style.visibility = "hidden";
+                    tooltipText.style.opacity = "0";
+                }, 1000);
+            });
+
+            let empty = document.getElementById("empty");
+            let bit32 = document.getElementById("bit32");
+            let bit64 = document.getElementById("bit64");
+
+            bit32.addEventListener("click", () => {
+                bit32.classList.toggle("active");
+                let value = BigInt("0x1fc000000");
+                if (bit32.classList.contains("active")) {
+                    hexinput.value = `0x${(
+                        BigInt(hexinput.value) + value
+                    ).toString(16)}`;
+                } else {
+                    hexinput.value = `0x${(
+                        BigInt(hexinput.value) - value
+                    ).toString(16)}`;
+                }
+            });
+
+            bit64.addEventListener("click", () => {
+                bit64.classList.toggle("active");
+                let value = BigInt("0xfffffffe00000000");
+                if (bit64.classList.contains("active")) {
+                    hexinput.value = `0x${(
+                        BigInt(hexinput.value) + value
+                    ).toString(16)}`;
+                } else {
+                    hexinput.value = `0x${(
+                        BigInt(hexinput.value) - value
+                    ).toString(16)}`;
+                }
+            });
+
+            for (let i = 25; i >= 0; i--) {
+                // create element
+                let element = document.createElement("div");
+                element.classList.add("bit");
+                element.id = `bit-${i}`;
+                element.textContent = i;
+
+                element.addEventListener("click", () => {
+                    element.classList.toggle("active");
+
+                    // calculate value
+                    let value = 1n << BigInt(element.textContent);
+                    if (element.classList.contains("active")) {
+                        hexinput.value = `0x${(
+                            BigInt(hexinput.value) + value
+                        ).toString(16)}`;
+                    } else {
+                        hexinput.value = `0x${(
+                            BigInt(hexinput.value) - value
+                        ).toString(16)}`;
+                    }
+                });
+
+                // insert element
+                empty.after(element);
+            }
+        </script>
+    </body>
+</html>
