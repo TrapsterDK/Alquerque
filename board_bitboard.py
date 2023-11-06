@@ -1,18 +1,13 @@
 from dataclasses import dataclass
 from move import Move, make_move, source, target  # noqa: F401
 
-WHITE_STARTING_POSITION = 0x3fffff
-
 @dataclass
 class Board:
     """A board for the game of alquerque."""
-    white_pieces: int
-    black_pieces: int
-    is_white: bool
 
 def make_board() -> Board:
     """Create a new board, with pieces in their starting positions."""
-    return Board(0b1111111111111111111111111, 0b1111111111111111111111111, True)
+    raise NotImplementedError
 
 def white_plays(b: Board) -> bool:
     """Return True if it is white's turn to play, otherwise False."""
