@@ -122,8 +122,8 @@
                     <div class="bit" id="bit64">Rest of 64 bit</div>
                 </div>
                 <div class="form-container">
-                    <form>
-                        <input id="hexinput" value="0x0" />
+                    <form onsubmit="return false;">
+                        <input id="hexinput" value="0x0" type="text" />
                     </form>
                     <div id="copy">
                         <svg
@@ -161,6 +161,13 @@
             let tooltip = document.getElementById("copy");
             let tooltipText = document.getElementById("copy-tooltip");
             let hexinput = document.getElementById("hexinput");
+            let empty = document.getElementById("empty");
+            let bit32 = document.getElementById("bit32");
+            let bit64 = document.getElementById("bit64");
+            let bit32_value = BigInt("0x1fc000000");
+            let bit64_value = BigInt("0xfffffffe00000000");
+            let bit32_max_value = BigInt("0x1ffffffff");
+            let bit64_max_value = BigInt("0xffffffffffffffff");
 
             tooltip.addEventListener("click", () => {
                 navigator.clipboard.writeText(hexinput.value);
@@ -173,34 +180,110 @@
                 }, 1000);
             });
 
-            let empty = document.getElementById("empty");
-            let bit32 = document.getElementById("bit32");
-            let bit64 = document.getElementById("bit64");
+            hexinput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    hexinput.blur();
+                }
+            });
+
+            hexinput.addEventListener("input", () => {
+                try {
+                    var value = BigInt(hexinput.value);
+                } catch (e) {
+                    return;
+                }
+
+                if (bit64_value <= value) {
+                    bit64.classList.add("active");
+                } else {
+                    bit64.classList.remove("active");
+                }
+
+                let value_sub_64bit =
+                    bit64_value <= value ? value - bit64_value : value;
+
+                if (bit32_value <= value_sub_64bit) {
+                    bit32.classList.add("active");
+                } else {
+                    bit32.classList.remove("active");
+                }
+
+                for (let i = 0; i <= 25; i++) {
+                    let bit = document.getElementById(`bit-${i}`);
+
+                    let bit_value = 1n << BigInt(bit.textContent);
+                    if (value & bit_value) {
+                        bit.classList.add("active");
+                    } else {
+                        bit.classList.remove("active");
+                    }
+                }
+            });
+
+            hexinput.addEventListener("focusout", () => {
+                try {
+                    var value = BigInt(hexinput.value);
+                } catch {
+                    var value = 0n;
+                }
+
+                if (bit64_max_value <= value) {
+                    bit64.classList.add("active");
+                    value = bit64_max_value;
+                } else if (bit64_value <= value && value < bit64_max_value) {
+                    bit64.classList.add("active");
+                } else {
+                    bit64.classList.remove("active");
+                }
+
+                let value_sub_64bit =
+                    bit64_value <= value ? value - bit64_value : value;
+                if (bit32_max_value <= value && value < bit64_value) {
+                    bit32.classList.add("active");
+                    value = bit32_max_value;
+                } else if (bit32_value <= value_sub_64bit) {
+                    bit32.classList.add("active");
+                } else {
+                    bit32.classList.remove("active");
+                    value &= ~bit32_value;
+                }
+
+                for (let i = 0; i <= 25; i++) {
+                    let bit = document.getElementById(`bit-${i}`);
+
+                    let bit_value = 1n << BigInt(bit.textContent);
+                    if (value & bit_value) {
+                        bit.classList.add("active");
+                    } else {
+                        bit.classList.remove("active");
+                    }
+                }
+
+                hexinput.value = `0x${value.toString(16)}`;
+            });
 
             bit32.addEventListener("click", () => {
                 bit32.classList.toggle("active");
-                let value = BigInt("0x1fc000000");
                 if (bit32.classList.contains("active")) {
                     hexinput.value = `0x${(
-                        BigInt(hexinput.value) + value
+                        BigInt(hexinput.value) + bit32_value
                     ).toString(16)}`;
                 } else {
                     hexinput.value = `0x${(
-                        BigInt(hexinput.value) - value
+                        BigInt(hexinput.value) - bit32_value
                     ).toString(16)}`;
                 }
             });
 
             bit64.addEventListener("click", () => {
                 bit64.classList.toggle("active");
-                let value = BigInt("0xfffffffe00000000");
                 if (bit64.classList.contains("active")) {
                     hexinput.value = `0x${(
-                        BigInt(hexinput.value) + value
+                        BigInt(hexinput.value) + bit64_value
                     ).toString(16)}`;
                 } else {
                     hexinput.value = `0x${(
-                        BigInt(hexinput.value) - value
+                        BigInt(hexinput.value) - bit64_value
                     ).toString(16)}`;
                 }
             });
