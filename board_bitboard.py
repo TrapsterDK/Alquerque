@@ -151,20 +151,19 @@ def legal_moves(b: Board) -> list[Move]:
                     )
                 )
 
-        for i, add_bb, rem_bb in zip(
-            [12, 10, 8, 2],
-            [
-                VALID_MOVE_RIGHT_2_BB,
-                VALID_MOVE_BB,
-                VALID_MOVE_LEFT_2_BB,
-                VALID_MOVE_RIGHT_2_BB,
-            ],
-            [
-                VALID_MOVE_LEFT_2_BB,
-                VALID_MOVE_BB,
-                VALID_MOVE_RIGHT_2_BB,
-                VALID_MOVE_LEFT_2_BB,
-            ],
+        MOVES_DIAGONALLY = [
+            (12, VALID_MOVE_RIGHT_2_BB, VALID_MOVE_LEFT_2_BB),
+            (8, VALID_MOVE_LEFT_2_BB, VALID_MOVE_RIGHT_2_BB),
+        ]
+        MOVES_LINE = [
+            (10, VALID_MOVE_BB, VALID_MOVE_BB),
+            (2, VALID_MOVE_RIGHT_2_BB, VALID_MOVE_LEFT_2_BB),
+        ]
+
+        for i, add_bb, rem_bb in (
+            MOVES_DIAGONALLY + MOVES_LINE
+            if _index_can_move_diagonally(source_index)
+            else MOVES_LINE
         ):
             target_index = source_index + i
             target_bb = source_bb << i
