@@ -12,11 +12,10 @@
             src="https://pyscript.net/releases/2023.11.1/core.js"
         ></script>
         <!-- prettier-ignore -->
-        <py-env> 
-            - paths: 
-                - /board_bitboard.py 
-                - /move.py 
-        </py-env>
+        <py-config>
+            [[fetch]]
+            files = ['move.py', 'board.py']
+        </py-config>
         <style>
             body {
                 margin: 0;
@@ -151,17 +150,19 @@
             for (let i = 1; i < 26; i++) {
                 let piece = document.createElement("div");
                 piece.classList.add("cell");
+                piece.setAttribute("pys-onClick", `click_handler(${i})`);
                 piece.id = i;
                 boardpieces.appendChild(piece);
             }
         </script>
         <!-- prettier-ignore -->
         <py-script>
-from move import Move
-from board import make_board, white, black
+from move import Move, target, source
+from board import make_board, white, black, legal_moves
 from js import document
 
 board = make_board()
+
 def cell_set(id, class_type) -> None:
     document.getElementById(id).classList = f"cell {class_type}"
 
@@ -171,7 +172,18 @@ def draw_board() -> None:
     for b in black(board):
         cell_set(b, "black")
 
+def draw_moves(moves: list[Move]) -> None:
+    for m in moves:
+        cell_set(target(m), "possible")
+
+def draw_clicked(*args, **kwargs) -> None:
+    cell_set(clicked, "white")
+
+def click_handler(id: int) -> None:
+    print(id)
+
 draw_board()
+
         </py-script>
     </body>
 </html>

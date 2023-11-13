@@ -1,9 +1,33 @@
 import sys
 import argparse
-import webbrowser
 import tempfile
 import http.server
 import socketserver
+from pathlib import Path
+import threading
+import signal
+
+HOST = "127.0.0.1"
+PORT = 8000
+MOVE_FILE = Path("move.py")
+ALQUERQUE_HTML = Path("alquerque.html")
+WEB_HTML = Path("web.html")
+MOVE = "move.py"
+BOARD = "board.py"
+
+
+class ReloadableTCPServer(socketserver.TCPServer):
+    def serve_forever(self, poll_interval=0.5):
+        self.reload = False
+        while not self.reload:
+            self.handle_request()
+        self.server_close()
+
+
+def files_refresh(dir, board_name):
+    (dir / MOVE).open("w").write(MOVE_FILE.read_text())
+    (dir / BOARD).open("w").write(Path(f"board_{board_name}.py").read_text())
+    (dir / WEB_HTML).open("w").write(ALQUERQUE_HTML.read_text())
 
 
 def main() -> None:
@@ -33,33 +57,37 @@ def main() -> None:
 
     if args.type == "web":
         # serve move.py and board_<representation>.py
-        PORT = 8000
-        Handler = http.server.SimpleHTTPRequestHandler
-        with socketserver.TCPServer(("", PORT), Handler) as httpd:
-            print("serving at port", PORT)
-            httpd.serve_forever()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path_temp_dir = Path(temp_dir)
 
-        """
-        html = Path("alquerque.html").read_text()
-        move_str = Path("move.py").read_text()
-        board_str = Path("board_" + args.board_representation + ".py").read_text()
+            files_refresh(path_temp_dir, args.board_representation)
 
-        board_move_import_start = board_str.find("from move")
-        board_move_import_end = board_str.find("\n", board_move_import_start)
+            class CustomHandler(http.server.SimpleHTTPRequestHandler):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(*args, directory=temp_dir, **kwargs)
 
-        board_str = (
-            board_str[:board_move_import_start]
-            + "\n"
-            + move_str
-            + "\n"
-            + board_str[board_move_import_end:]
-        )
-        html = html.replace("{{python-inject}}", board_str)
-        with tempfile.NamedTemporaryFile("w", delete=False, suffix=".html") as f:
-            url = "file://" + f.name
-            f.write(html)
-            webbrowser.open(url)
-        """
+            server = socketserver.TCPServer((HOST, PORT), CustomHandler)
+            server_thread = threading.Thread(target=server.serve_forever)
+            server_thread.start()
+
+            print(f"Serving on http://{HOST}:{PORT}/web.html")
+            print("Press Ctrl+C to stop the server")
+            print("Press r to restart the server")
+
+            while True:
+                try:
+                    key = input()
+                    if key == "r":
+                        files_refresh(path_temp_dir, args.board_representation)
+                        server.reload = True
+                    elif key == "q":
+                        raise KeyboardInterrupt
+                    else:
+                        print("Press r to restart the server or q to quit")
+                except KeyboardInterrupt:
+                    server.shutdown()
+                    server.server_close()
+                    break
 
     else:
         # import the board representation
