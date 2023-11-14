@@ -5,15 +5,16 @@ import http.server
 import socketserver
 from pathlib import Path
 import threading
-import signal
+import os
 
 HOST = "127.0.0.1"
 PORT = 8000
 MOVE_FILE = Path("move.py")
-ALQUERQUE_HTML = Path("alquerque.html")
-WEB_HTML = Path("web.html")
-MOVE = "move.py"
-BOARD = "board.py"
+WEB_DIR = Path("web/")
+GUI_DIR = Path("gui/")
+WEB_INDEX_FILE = "index.html"
+TEMP_MOVE = "move.py"
+TEMP_BOARD = "board.py"
 
 
 class ReloadableTCPServer(socketserver.TCPServer):
@@ -25,9 +26,10 @@ class ReloadableTCPServer(socketserver.TCPServer):
 
 
 def files_refresh(dir, board_name):
-    (dir / MOVE).open("w").write(MOVE_FILE.read_text())
-    (dir / BOARD).open("w").write(Path(f"board_{board_name}.py").read_text())
-    (dir / WEB_HTML).open("w").write(ALQUERQUE_HTML.read_text())
+    (dir / TEMP_MOVE).open("w").write(MOVE_FILE.read_text())
+    (dir / TEMP_BOARD).open("w").write(Path(f"{board_name}.py").read_text())
+    for file in WEB_DIR.iterdir():
+        (dir / file.name).open("w").write(file.read_text())
 
 
 def main() -> None:
@@ -35,12 +37,16 @@ def main() -> None:
         description="Run alquerque using a given board representation."
     )
 
-    # must have a string argument for the board representation with either
-    # bitboard, list, matrix, split, splitcord
     parser.add_argument(
         "board_representation",
         type=str,
-        choices=["bitboard", "list", "matrix", "split", "splitcord"],
+        choices=[
+            "board_bitboard",
+            "board_list",
+            "board_matrix",
+            "board_split",
+            "board_splitcord",
+        ],
         help="the board representation to use",
     )
 
@@ -56,7 +62,6 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.type == "web":
-        # serve move.py and board_<representation>.py
         with tempfile.TemporaryDirectory() as temp_dir:
             path_temp_dir = Path(temp_dir)
 
@@ -70,7 +75,7 @@ def main() -> None:
             server_thread = threading.Thread(target=server.serve_forever)
             server_thread.start()
 
-            print(f"Serving on http://{HOST}:{PORT}/web.html")
+            print(f"Serving on http://{HOST}:{PORT}/{WEB_INDEX_FILE}")
             print("Press Ctrl+C to stop the server")
             print("Press r to restart the server")
 
@@ -91,10 +96,12 @@ def main() -> None:
 
     else:
         # import the board representation
-        sys.modules["board"] = __import__("board_" + args.board_representation)
+        sys.modules["board"] = __import__(args.board_representation)
+
+        os.chdir(GUI_DIR)
 
         # run the GUI
-        import alquerqueGUI  # noqa: F401
+        import gui.alquerqueGUI  # noqa: F401
 
 
 if __name__ == "__main__":
