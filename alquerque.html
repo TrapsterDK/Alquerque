@@ -97,7 +97,7 @@ files = ['move.py', 'board.py']
                 padding: 0;
                 text-align: center;
             }
-            #restart {
+            #game-over-restart {
                 position: absolute;
                 left: 50%;
                 top: 80%;
@@ -112,15 +112,58 @@ files = ['move.py', 'board.py']
                 color: #000;
                 cursor: pointer;
             }
+            #game-over-restart:hover {
+                background-color: #000;
+                color: #fff;
+            }
+            #title {
+                font-size: 3em;
+                text-align: center;
+            }
+            #buttons {
+                position: absolute;
+                left: 50%;
+                top: 93%;
+                -webkit-transform: translate(-50%, -50%);
+                transform: translate(-50%, -50%);
+                width: max(500px, 80vh);
+                text-align: center;
+            }
+            .control-buttons {
+                margin-left: 5px;
+                margin-right: 5px;
+                width: 180px;
+                height: 40px;
+                background-color: #fff;
+                border: none;
+                font-size: 1.7rem;
+                font-weight: 600;
+                color: #000;
+                cursor: pointer;
+            }
+            .control-buttons:hover {
+                background-color: #000;
+                color: #fff;
+            }
+            .control-buttons:disabled {
+                background-color: #8e8e8e;
+                color: #000;
+                cursor: not-allowed;
+            }
         </style>
         <title>Alquerque</title>
     </head>
     <body>
+        <h1 id="title">Alquerque</h1>
+        <div id="buttons">
+            <button class="control-buttons" id="undo">Undo</button>
+            <button class="control-buttons restart">Restart</button>
+        </div>
         <svg id="board"></svg>
         <div id="boardpieces"></div>
         <div id="result">
             <h2 id="result-text">Text</h2>
-            <button id="restart">Restart</button>
+            <button class="restart game-over-restart">Restart</button>
         </div>
         <script>
             let board = document.getElementById("board");
@@ -213,6 +256,7 @@ is_white: bool
 clicked: int | None
 result_element = document.getElementById("result")
 result_text_element = document.getElementById("result-text")
+undo_element = document.getElementById("undo")
 
 def cell_set(id, class_type) -> None:
     document.getElementById(id).classList = f"cell {class_type}"
@@ -236,7 +280,7 @@ def possible_moves(legal_moves_var: list[Move], clicked: int) -> list[Move]:
         return [m for m in legal_moves_var if source(m) == clicked]
 
 
-@when("click", "#restart")
+@when("click", ".restart")
 def setup() -> None:
     global history, board, legal_moves_var, black_pieces, white_pieces, is_white, clicked
 
@@ -249,9 +293,26 @@ def setup() -> None:
     white_pieces = white(board)
     is_white = white_plays(board)
     clicked = None
+    undo_element.disabled = True
 
     draw_board(white_pieces, black_pieces, clicked, [])
 
+@when("click", "#undo")
+def undo() -> None:
+    global history, board, legal_moves_var, black_pieces, white_pieces, is_white, clicked
+    if len(history) > 0:
+        board = history.pop()
+        legal_moves_var = legal_moves(board)
+        black_pieces = black(board)
+        white_pieces = white(board)
+        is_white = white_plays(board)
+        clicked = None
+        draw_board(white_pieces, black_pieces, clicked, [])
+
+    if len(history) == 0:
+        undo_element.disabled = True
+    else:
+        undo_element.disabled = False
 
 @when("click", ".cell")
 def click_handler(event) -> None:
@@ -261,6 +322,7 @@ def click_handler(event) -> None:
         m = Move(clicked, id)
         if is_legal(m, board):
             history.append(copy(board))
+            undo_element.disabled = False
             move(m, board)
             
             legal_moves_var = legal_moves(board)
