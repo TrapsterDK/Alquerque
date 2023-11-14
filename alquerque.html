@@ -11,6 +11,7 @@
             type="module"
             src="https://pyscript.net/releases/2023.11.1/core.js"
         ></script>
+        <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
         <!-- prettier-ignore -->
         <py-config> 
 [[fetch]] 
@@ -49,29 +50,27 @@ files = ['move.py', 'board.py']
                 display: grid;
                 grid-template-columns: repeat(5, 1fr);
             }
+            .hidden {
+                visibility: hidden;
+            }
             .cell {
                 place-self: center;
                 width: 70%;
                 height: 70%;
                 background-color: #494949;
                 border-radius: 50%;
-                visibility: hidden;
             }
             .black {
                 background-color: #000;
-                visibility: visible;
             }
             .white {
                 background-color: #fff;
-                visibility: visible;
             }
             .clicked {
                 background-color: #00ff00;
-                visibility: visible;
             }
             .possible {
                 background-color: #90ee90;
-                visibility: visible;
             }
             #result {
                 position: absolute;
@@ -116,7 +115,7 @@ files = ['move.py', 'board.py']
                 background-color: #000;
                 color: #fff;
             }
-            #title {
+            .game-title {
                 font-size: 3em;
                 text-align: center;
             }
@@ -150,20 +149,58 @@ files = ['move.py', 'board.py']
                 color: #000;
                 cursor: not-allowed;
             }
+            #menu {
+                position: absolute;
+                left: 50%;
+                top: 45%;
+                -webkit-transform: translate(-50%, -50%);
+                transform: translate(-50%, -50%);
+                width: 400px;
+                display: grid;
+                grid-template-columns: 1fr;
+                grid-gap: 20px;
+            }
+            .menu-buttons {
+                width: 400px;
+                height: 80px;
+                background-color: #fff;
+                border: none;
+                font-size: 3rem;
+                font-weight: 600;
+                color: #000;
+                cursor: pointer;
+            }
+            .menu-buttons:hover {
+                background-color: #000;
+                color: #fff;
+            }
+            #game {
+                visibility: hidden;
+            }
         </style>
         <title>Alquerque</title>
     </head>
     <body>
-        <h1 id="title">Alquerque</h1>
-        <div id="buttons">
-            <button class="control-buttons" id="undo">Undo</button>
-            <button class="control-buttons restart">Restart</button>
+        <div id="menu">
+            <h1 class="game-title">Alquerque</h1>
+            <button class="menu-buttons" id="play-offline">Play offline</button>
+            <button class="menu-buttons" id="play-ai">Play vs. AI</button>
+            <button class="menu-buttons" id="play-online">Play online</button>
+            <button class="menu-buttons" id="play-join">Join game</button>
         </div>
-        <svg id="board"></svg>
-        <div id="boardpieces"></div>
-        <div id="result">
-            <h2 id="result-text">Text</h2>
-            <button class="restart game-over-restart">Restart</button>
+        <div id="game">
+            <h1 class="game-title">Alquerque</h1>
+            <div id="buttons">
+                <button class="control-buttons" id="back-menu">Menu</button>
+                <button class="control-buttons" id="undo">Undo</button>
+                <button class="control-buttons restart">Restart</button>
+            </div>
+            <svg id="board"></svg>
+            <div id="boardpieces"></div>
+            <div id="result">
+                <h2 id="result-text">Text</h2>
+                <button class="restart game-over-restart">Restart</button>
+            </div>
         </div>
         <script>
             let board = document.getElementById("board");
@@ -239,6 +276,14 @@ files = ['move.py', 'board.py']
                 piece.id = i;
                 boardpieces.appendChild(piece);
             }
+
+            let back_menu = document.getElementById("back-menu");
+            let menu = document.getElementById("menu");
+            let game = document.getElementById("game");
+            back_menu.addEventListener("click", () => {
+                menu.style.visibility = "visible";
+                game.style.visibility = "hidden";
+            });
         </script>
         <!-- prettier-ignore -->
         <py-script>
@@ -257,6 +302,8 @@ clicked: int | None
 result_element = document.getElementById("result")
 result_text_element = document.getElementById("result-text")
 undo_element = document.getElementById("undo")
+menu = document.getElementById("menu")
+game = document.getElementById("game")
 
 def cell_set(id, class_type) -> None:
     document.getElementById(id).classList = f"cell {class_type}"
@@ -280,11 +327,13 @@ def possible_moves(legal_moves_var: list[Move], clicked: int) -> list[Move]:
         return [m for m in legal_moves_var if source(m) == clicked]
 
 
-@when("click", ".restart")
-def setup() -> None:
+@when("click", "#play-offline")
+def setup_offline() -> None:
     global history, board, legal_moves_var, black_pieces, white_pieces, is_white, clicked
 
     result_element.style.visibility = "hidden"
+    menu.style.visibility = "hidden"
+    game.style.visibility = "visible"
 
     history = []
     board = make_board()
@@ -351,8 +400,6 @@ def click_handler(event) -> None:
 
 
     draw_board(white_pieces, black_pieces, clicked, possible_moves(legal_moves_var, clicked))
-    
-setup()
         </py-script>
     </body>
 </html>
