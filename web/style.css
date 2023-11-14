@@ -1,0 +1,153 @@
+:root {
+    --default-color: #fff;
+
+    --button-color: #fff;
+    --button-text-color: #000;
+    --button-hover-color: #000;
+    --button-hover-text-color: #fff;
+    --button-disabled-color: #8e8e8e;
+
+    --piece-black-color: #000;
+    --piece-white-color: #fff;
+    --piece-clicked-color: #00ff00;
+    --piece-possible-moves-color: #90ee90;
+
+    --background-color: #303030;
+    --overlay-background-color: #191919;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Arial";
+    font-weight: 600;
+    color: var(--default-color);
+    background: var(--background-color);
+    width: 100%;
+    height: 100%;
+}
+
+button {
+    background-color: var(--button-color);
+    color: var(--button-text-color);
+    cursor: pointer;
+    border: none;
+}
+
+button:disabled {
+    background-color: var(--button-disabled-color);
+    color: var(--button-text-color);
+    cursor: not-allowed;
+}
+
+button:hover {
+    background-color: var(--button-hover-color);
+    color: var(--button-hover-text-color);
+}
+
+.center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.board-container {
+    width: max(500px, 80vh);
+    height: max(500px, 80vh);
+}
+
+.board-cells {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+}
+
+#result {
+    width: max(375px, 60vh);
+    height: min(200px, 30vh);
+    background-color: var(--overlay-background-color);
+    visibility: hidden;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+.cell {
+    place-self: center;
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+}
+.cell-black {
+    background-color: var(--piece-black-color);
+}
+.cell-white {
+    background-color: var(--piece-white-color);
+}
+.cell-clicked {
+    background-color: var(--piece-clicked-color);
+}
+.cell-possible-moves {
+    background-color: var(--piece-possible-moves-color);
+}
+
+#result-text {
+    font-size: 4rem;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+#game-over-restart {
+    top: 80%;
+    width: 120px;
+    height: 25px;
+    background-color: #fff;
+    border: none;
+    font-size: 1rem;
+    color: #000;
+    cursor: pointer;
+}
+.title {
+    font-size: 3em;
+    text-align: center;
+}
+
+.result-buttons {
+    margin-left: 5px;
+    margin-right: 5px;
+    width: 180px;
+    height: 40px;
+    font-size: 1.7rem;
+}
+
+#game {
+    visibility: hidden;
+}
+
+#menu {
+    width: 400px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: 20px;
+}
+
+.menu-buttons {
+    width: 400px;
+    height: 80px;
+    border: none;
+    font-size: 3rem;
+    cursor: pointer;
+}
+
+.control-buttons {
+    position: absolute;
+    left: 50%;
+    top: 93%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    width: max(500px, 80vh);
+    text-align: center;
+}
