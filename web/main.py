@@ -11,9 +11,12 @@ from board import (
     is_legal,
     Board,
 )
-from js import document  # type: ignore
+from js import document, Peer  # type: ignore
 from pyscript import when  # type: ignore
-from js import Peer
+from pyodide.ffi import create_proxy  # type: ignore
+
+peer = Peer.new()
+peer.on("open", create_proxy(lambda id: print("My peer ID is: " + id)))
 
 history: list[Board]
 board: Board

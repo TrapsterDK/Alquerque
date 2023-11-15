@@ -184,3 +184,9 @@ button:hover {
     height: 32px;
     font-size: 1.7rem;
 }
+
+#board-svg {
+    stroke: #3c3c3c;
+    fill: #3c3c3c;
+    stroke-width: 8;
+}

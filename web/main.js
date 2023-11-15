@@ -14,14 +14,14 @@ function drawLine(fx, fy, tx, ty, spacing) {
         fy * spacing + spacing / 2
     }' x2='${tx * spacing + spacing / 2}' y2='${
         ty * spacing + spacing / 2
-    }' stroke='#3c3c3c' stroke-width='8' />`;
+    }' />`;
     boardsvg.innerHTML += line;
 }
 
 function drawCircle(x, y, spacing, radius) {
     let circle = `<circle cx='${x * spacing + spacing / 2}' cy='${
         y * spacing + spacing / 2
-    }' r='${radius}' stroke='#3c3c3c'  fill='#3c3c3c' />`;
+    }' r='${radius}' />`;
 
     boardsvg.innerHTML += circle;
 }
@@ -79,3 +79,6 @@ for (let i = 0; i < back_menus.length; i++) {
 
 window.addEventListener("resize", drawBoard);
 drawBoard();
+
+// let peer = Peer();
+// console.log(peer);
