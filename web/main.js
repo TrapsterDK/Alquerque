@@ -1,6 +1,6 @@
-let boardsvg = document.getElementById("boardsvg");
-let boardcells = document.getElementById("boardcells");
-let back_menu = document.getElementById("back-menu");
+let boardsvg = document.getElementById("board-svg");
+let boardcells = document.getElementById("board-cells");
+let back_menus = document.getElementsByClassName("button-menu");
 let menu = document.getElementById("menu");
 let game = document.getElementById("game");
 
@@ -70,10 +70,12 @@ for (let i = 1; i < 26; i++) {
     boardcells.appendChild(addpiece);
 }
 
-back_menu.addEventListener("click", () => {
-    menu.style.visibility = "visible";
-    game.style.visibility = "hidden";
-});
+for (let i = 0; i < back_menus.length; i++) {
+    back_menus[i].addEventListener("click", () => {
+        menu.style.visibility = "visible";
+        game.style.visibility = "hidden";
+    });
+}
 
 window.addEventListener("resize", drawBoard);
 drawBoard();

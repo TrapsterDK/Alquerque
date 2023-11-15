@@ -13,15 +13,11 @@
             src="https://pyscript.net/releases/2023.11.1/core.js"
         ></script>
         <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
-        <!-- prettier-ignore -->
-        <py-config> 
-            [[fetch]] 
-            files = ['move.py', 'board.py'] 
-        </py-config>
         <title>Alquerque</title>
     </head>
     <body>
-        <div id="menu">
+        <div id="overlay"></div>
+        <div id="menu" class="center">
             <h1 class="title">Alquerque</h1>
             <button class="menu-buttons" id="play-offline">Play offline</button>
             <button class="menu-buttons" id="play-ai">Play vs. AI</button>
@@ -31,23 +27,25 @@
         <div id="game">
             <h1 class="title">Alquerque</h1>
             <div class="board-container center">
-                <svg id="boardsvg"></svg>
-                <div class="board-cells" id="board-cells"></div>
+                <svg id="board-svg" class="absolute-fill"></svg>
+                <div id="board-cells" class="absolute-fill"></div>
             </div>
-            <div class="control-buttons">
-                <button class="control-buttons menu">Menu</button>
-                <button class="control-buttons restart">Restart</button>
-                <button class="control-buttons undo">Undo</button>
+            <div class="center control-buttons">
+                <button class="control-button button-menu">Menu</button>
+                <button class="control-button button-restart">Restart</button>
+                <button class="control-button button-undo" id="control-undo">
+                    Undo
+                </button>
             </div>
-            <div id="result center">
-                <h2 id="result-text center">Text</h2>
-                <div class="result-buttons">
-                    <button class="result-buttons menu">Menu</button>
-                    <button class="result-buttons restart">Restart</button>
-                </div>
+        </div>
+        <div id="result" class="center">
+            <h2 id="result-text" class="center">Text</h2>
+            <div class="result-buttons">
+                <button class="result-button button-menu">Menu</button>
+                <button class="result-button button-restart">Restart</button>
             </div>
         </div>
         <script src="/main.js"></script>
-        <script type="py" src="./main.py"></script>
+        <script type="py" src="./main.py" config="pyscript.toml"></script>
     </body>
 </html>
