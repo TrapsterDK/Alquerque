@@ -11,6 +11,7 @@ from board import (
     is_legal,
     Board,
 )
+from observablelist import ObservableList
 from js import document, Peer  # type: ignore
 from pyscript import when  # type: ignore
 
@@ -21,12 +22,14 @@ from pyscript import when  # type: ignore
 
 
 CIRCLE_RADIUS_PERCENTAGE = 0.4
+BOARD_WIDTH = 5
 CLASS_CELL = "cell"
 CLASS_CELL_BLACK = "cell-black"
 CLASS_CELL_WHITE = "cell-white"
 CLASS_CELL_POSSIBLE = "cell-possible-moves"
 CLASS_CELL_CLICKED = "cell-clicked"
 CLASS_HIDDEN = "hidden"
+SVG_NAMESPACE = "http://www.w3.org/2000/svg"
 
 result_element = document.getElementById("result")
 result_text_element = document.getElementById("result-text")
@@ -37,7 +40,12 @@ overlay_element = document.getElementById("overlay")
 board_svg_element = document.getElementById("board-svg")
 board_cells_element = document.getElementById("board-cells")
 
-history: list[Board]
+
+def history_length_changed(new_length: int) -> None:
+    control_undo_element.disabled = new_length == 0
+
+
+history: ObservableList[Board] = ObservableList(history_length_changed)
 board: Board
 legal_moves_var: list[Move]
 black_pieces: list[int]
@@ -47,21 +55,28 @@ clicked: int | None
 
 
 def draw_line(fx: int, fy: int, tx: int, ty: int, spacing: float) -> None:
-    line = f"<line x1='{fx * spacing + spacing / 2}' y1='{fy * spacing + spacing / 2}' x2='{tx * spacing + spacing / 2}' y2='{ty * spacing + spacing / 2}' />"
+    line = document.createElementNS(SVG_NAMESPACE, "line")
+    line.setAttribute("x1", f"{fx * spacing + spacing / 2}")
+    line.setAttribute("y1", f"{fy * spacing + spacing / 2}")
+    line.setAttribute("x2", f"{tx * spacing + spacing / 2}")
+    line.setAttribute("y2", f"{ty * spacing + spacing / 2}")
 
-    board_svg_element.innerHTML += line
+    board_svg_element.appendChild(line)
 
 
 def draw_circle(x: int, y: int, spacing: int, radius: int) -> None:
-    circle = f"<circle cx='{x * spacing + spacing / 2}' cy='{y * spacing + spacing / 2}' r='{radius}' />"
+    circle = document.createElementNS(SVG_NAMESPACE, "circle")
+    circle.setAttribute("cx", f"{x * spacing + spacing / 2}")
+    circle.setAttribute("cy", f"{y * spacing + spacing / 2}")
+    circle.setAttribute("r", f"{radius}")
 
-    board_svg_element.innerHTML += circle
+    board_svg_element.appendChild(circle)
 
 
 def add_board_svg() -> None:
     board_svg_element.innerHTML = ""
     board_size = board_svg_element.clientWidth
-    circle_spacing = board_size / 5
+    circle_spacing = board_size / BOARD_WIDTH
     circle_radius = (circle_spacing / 2) * CIRCLE_RADIUS_PERCENTAGE
 
     # draw circles
@@ -108,7 +123,8 @@ add_board_svg()
 add_board_cells()
 
 
-def display_result() -> None:
+def display_result(result: str) -> None:
+    result_text_element.textContent = result
     overlay_element.style.visibility = "visible"
     result_element.style.visibility = "visible"
 
@@ -119,11 +135,13 @@ def hide_result() -> None:
 
 
 def display_menu() -> None:
+    hide_result()
     menu_element.style.visibility = "visible"
     game_element.style.visibility = "hidden"
 
 
 def display_game() -> None:
+    hide_result()
     menu_element.style.visibility = "hidden"
     game_element.style.visibility = "visible"
 
@@ -135,8 +153,8 @@ def cell_set(id: int, class_type: str) -> None:
 def possible_moves(legal_moves_var: list[Move], clicked: int) -> list[Move]:
     if clicked is None:
         return []
-    else:
-        return [m for m in legal_moves_var if source(m) == clicked]
+
+    return [m for m in legal_moves_var if source(m) == clicked]
 
 
 def draw_board(
@@ -154,39 +172,31 @@ def draw_board(
         cell_set(clicked, CLASS_CELL_CLICKED)
 
 
-@when("click", "#play-offline")  # button-restart
-def setup_offline() -> None:
-    global history, board, legal_moves_var, black_pieces, white_pieces, is_white, clicked
-
-    history = []
-    board = make_board()
+def reload_board() -> None:
+    global legal_moves_var, black_pieces, white_pieces, is_white, clicked
     legal_moves_var = legal_moves(board)
     black_pieces = black(board)
     white_pieces = white(board)
     is_white = white_plays(board)
     clicked = None
-    control_undo_element.disabled = True
-    display_game()
-
     draw_board(white_pieces, black_pieces, clicked, [])
+
+
+@when("click", "#play-offline, .button-restart")  # #play-ai,
+def setup_offline() -> None:
+    global history, board
+
+    history.clear()
+    board = make_board()
+    reload_board()
+    display_game()
 
 
 @when("click", ".button-undo")
 def click_button_undo(event) -> None:
-    global history, board, legal_moves_var, black_pieces, white_pieces, is_white, clicked
-    if len(history) > 0:
-        board = history.pop()
-        legal_moves_var = legal_moves(board)
-        black_pieces = black(board)
-        white_pieces = white(board)
-        is_white = white_plays(board)
-        clicked = None
-        draw_board(white_pieces, black_pieces, clicked, [])
-
-    if len(history) == 0:
-        control_undo_element.disabled = True
-    else:
-        control_undo_element.disabled = False
+    global history, board
+    board = history.pop()
+    reload_board()
 
 
 @when("click", ".cell")
@@ -195,23 +205,19 @@ def click_cell(event) -> None:
     id: int = int(event.srcElement.id)
     if clicked and is_legal(Move(clicked, id), board):
         history.append(copy(board))
-        control_undo_element.disabled = False
         move(Move(clicked, id), board)
-
-        legal_moves_var = legal_moves(board)
-        black_pieces = black(board)
-        white_pieces = white(board)
-        is_white = white_plays(board)
-        clicked = None
+        reload_board()
 
         if is_game_over(board):
             if not black_pieces:
-                result_text_element.textContent = "White wins!"
+                display_result("White wins!")
             elif not white_pieces:
-                result_text_element.textContent = "Black wins!"
+                display_result("Black wins!")
             else:
-                result_text_element.textContent = "Draw!"
-            display_result()
+                display_result("Draw!")
+
+        return
+
     elif (is_white and id in white_pieces) or (not is_white and id in black_pieces):
         clicked = id
     else:

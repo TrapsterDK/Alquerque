@@ -1,2 +1,2 @@
 [[fetch]] 
-files = ['move.py', 'board.py'] 
+files = ['move.py', 'board.py', 'observablelist.py']
