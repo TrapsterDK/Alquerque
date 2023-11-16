@@ -41,7 +41,7 @@ button:disabled {
     cursor: not-allowed;
 }
 
-button:hover {
+button:hover:enabled {
     background-color: var(--button-hover-color);
     color: var(--button-hover-text-color);
 }
