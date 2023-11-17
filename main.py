@@ -15,6 +15,7 @@ GUI_DIR = Path("gui/")
 WEB_INDEX_FILE = "index.html"
 TEMP_MOVE = "move.py"
 TEMP_BOARD = "board.py"
+TEMP_MINIMAX = "minimax.py"
 
 
 class ReloadableTCPServer(socketserver.TCPServer):
@@ -25,9 +26,10 @@ class ReloadableTCPServer(socketserver.TCPServer):
         self.server_close()
 
 
-def files_refresh(dir, board_name):
+def files_refresh(dir, board_name, minimax_name):
     (dir / TEMP_MOVE).open("w").write(MOVE_FILE.read_text())
     (dir / TEMP_BOARD).open("w").write(Path(f"{board_name}.py").read_text())
+    (dir / TEMP_MINIMAX).open("w").write(Path(f"{minimax_name}.py").read_text())
     for file in WEB_DIR.iterdir():
         (dir / file.name).open("w").write(file.read_text())
 
@@ -38,16 +40,19 @@ def main() -> None:
     )
 
     parser.add_argument(
-        "board_representation",
+        "-b",
+        "--board-representation",
         type=str,
-        choices=[
-            "board_bitboard",
-            "board_list",
-            "board_matrix",
-            "board_split",
-            "board_splitcord",
-        ],
-        help="the board representation to use",
+        required=True,
+        help="the python file containing the board representation without the .py extension",
+    )
+
+    parser.add_argument(
+        "-m",
+        "--minimax",
+        type=str,
+        required=True,
+        help="the python file containing the minimax algorithm without the .py extension",
     )
 
     parser.add_argument(
@@ -61,11 +66,21 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    # check if the board representation file exists
+    if not Path(f"{args.board_representation}.py").exists():
+        print(f"{args.board_representation}.py does not exist")
+        sys.exit(1)
+
+    # check if the minimax file exists
+    if not Path(f"{args.minimax}.py").exists():
+        print(f"{args.minimax}.py does not exist")
+        sys.exit(1)
+
     if args.type == "web":
         with tempfile.TemporaryDirectory() as temp_dir:
             path_temp_dir = Path(temp_dir)
 
-            files_refresh(path_temp_dir, args.board_representation)
+            files_refresh(path_temp_dir, args.board_representation, args.minimax)
 
             class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 def __init__(self, *args, **kwargs):
@@ -83,7 +98,9 @@ def main() -> None:
                 try:
                     key = input()
                     if key == "r":
-                        files_refresh(path_temp_dir, args.board_representation)
+                        files_refresh(
+                            path_temp_dir, args.board_representation, args.minimax
+                        )
                         server.reload = True
                     elif key == "q":
                         raise KeyboardInterrupt
@@ -95,8 +112,8 @@ def main() -> None:
                     break
 
     else:
-        # import the board representation
         sys.modules["board"] = __import__(args.board_representation)
+        sys.modules["minimax"] = __import__(args.minimax)
 
         os.chdir(GUI_DIR)
 
