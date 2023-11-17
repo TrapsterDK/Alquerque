@@ -38,14 +38,28 @@
                 </button>
             </div>
         </div>
-        <div id="result" class="center">
+        <div id="result" class="popup center">
             <h2 id="result-text" class="center">Text</h2>
-            <div class="result-buttons">
+            <div class="popup-buttons">
                 <button class="result-button button-menu">Menu</button>
                 <button class="result-button button-restart">Restart</button>
             </div>
         </div>
-        <script src="/main.js"></script>
+        <div id="popup-join" class="popup center">
+            <h2 class="lobby-text center">Join game</h2>
+            <input id="join-input" class="lobby-input center" type="text" />
+            <div class="popup-buttons">
+                <button class="result-button button-menu">Menu</button>
+                <button class="result-button button-join">Join</button>
+            </div>
+        </div>
+        <div id="popup-create" class="popup center">
+            <h2 class="lobby-text center">Waiting on player</h2>
+            <input id="create-input" class="lobby-input center" type="text" />
+            <div class="popup-buttons">
+                <button class="result-button button-menu">Menu</button>
+            </div>
+        </div>
         <script type="py" src="./main.py" config="pyscript.toml"></script>
     </body>
 </html>

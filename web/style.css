@@ -93,6 +93,12 @@ button:hover:enabled {
     height: max(500px, 80vh);
 }
 
+#board-svg {
+    stroke: #3c3c3c;
+    fill: #3c3c3c;
+    stroke-width: 8;
+}
+
 #board-cells {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -170,13 +176,6 @@ button:hover:enabled {
     text-align: center;
 }
 
-.result-buttons {
-    position: absolute;
-    top: 65%;
-    width: 100%;
-    text-align: center;
-}
-
 .result-button {
     margin-left: 5px;
     margin-right: 5px;
@@ -185,8 +184,38 @@ button:hover:enabled {
     font-size: 1.7rem;
 }
 
-#board-svg {
-    stroke: #3c3c3c;
-    fill: #3c3c3c;
-    stroke-width: 8;
+.popup {
+    width: max(500px, 60vh);
+    height: max(30vh, 220px);
+    background-color: var(--overlay-background-color);
+    z-index: 2;
+    visibility: visible;
+}
+
+.popup-buttons {
+    position: absolute;
+    top: 75%;
+    width: 100%;
+    text-align: center;
+}
+
+.lobby-input {
+    top: 57%;
+    width: 60%;
+    height: 40px;
+    font-size: 2rem;
+    text-align: center;
+}
+
+.lobby-text {
+    top: 25%;
+    font-size: 3rem;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.py-error {
+    visibility: hidden;
 }
