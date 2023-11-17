@@ -70,18 +70,6 @@ button:hover:enabled {
     height: 100%;
 }
 
-#overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgb(0, 0, 0, 0.1);
-    backdrop-filter: blur(2px);
-    z-index: 1;
-    visibility: hidden;
-}
-
 /* Game styles */
 
 #game {
@@ -157,65 +145,72 @@ button:hover:enabled {
     cursor: pointer;
 }
 
-/* Result styles */
+/* Popup styles */
 
-#result {
-    width: max(375px, 60vh);
-    height: min(250px, 30vh);
-    background-color: var(--overlay-background-color);
-    z-index: 2;
+#popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     visibility: hidden;
 }
 
-#result-text {
-    top: 45%;
-    font-size: 4rem;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    text-align: center;
+.overlay-background-blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+    z-index: 1;
 }
 
-.result-button {
-    margin-left: 5px;
-    margin-right: 5px;
+.popup-container {
+    width: max(450px, 50vh);
+    background-color: var(--overlay-background-color);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    row-gap: 30px;
+    padding: 50px;
+}
+
+#popup-buttons {
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: 25px;
+}
+
+.popup-button {
     width: 110px;
     height: 32px;
     font-size: 1.7rem;
 }
 
-.popup {
-    width: max(500px, 60vh);
-    height: max(30vh, 220px);
-    background-color: var(--overlay-background-color);
-    z-index: 2;
-    visibility: visible;
-}
-
-.popup-buttons {
-    position: absolute;
-    top: 75%;
+#popup-title {
+    font-size: 3rem;
     width: 100%;
+    margin: 0;
+    padding: 0;
     text-align: center;
+    line-height: 0.8;
 }
 
-.lobby-input {
-    top: 57%;
+.popup-input {
     width: 60%;
     height: 40px;
     font-size: 2rem;
     text-align: center;
 }
 
-.lobby-text {
-    top: 25%;
-    font-size: 3rem;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-}
-
+/*
 .py-error {
     visibility: hidden;
 }
+*/

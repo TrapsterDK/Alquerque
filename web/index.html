@@ -16,12 +16,11 @@
         <title>Alquerque</title>
     </head>
     <body>
-        <div id="overlay"></div>
         <div id="menu" class="center">
             <h1 class="title">Alquerque</h1>
             <button class="menu-buttons" id="play-offline">Play offline</button>
             <button class="menu-buttons" id="play-ai">Play vs. AI</button>
-            <button class="menu-buttons" id="play-online">Play online</button>
+            <button class="menu-buttons" id="play-create">Create game</button>
             <button class="menu-buttons" id="play-join">Join game</button>
         </div>
         <div id="game">
@@ -38,26 +37,32 @@
                 </button>
             </div>
         </div>
-        <div id="result" class="popup center">
-            <h2 id="result-text" class="center">Text</h2>
-            <div class="popup-buttons">
-                <button class="result-button button-menu">Menu</button>
-                <button class="result-button button-restart">Restart</button>
-            </div>
-        </div>
-        <div id="popup-join" class="popup center">
-            <h2 class="lobby-text center">Join game</h2>
-            <input id="join-input" class="lobby-input center" type="text" />
-            <div class="popup-buttons">
-                <button class="result-button button-menu">Menu</button>
-                <button class="result-button button-join">Join</button>
-            </div>
-        </div>
-        <div id="popup-create" class="popup center">
-            <h2 class="lobby-text center">Waiting on player</h2>
-            <input id="create-input" class="lobby-input center" type="text" />
-            <div class="popup-buttons">
-                <button class="result-button button-menu">Menu</button>
+        <div id="popup">
+            <div class="overlay-background-blur">
+                <div class="popup-container center">
+                    <h2 id="popup-title">Text</h2>
+                    <input class="popup-input" id="popup-input" />
+                    <div id="popup-buttons">
+                        <button
+                            id="popup-button-menu"
+                            class="popup-button button-menu"
+                        >
+                            Menu
+                        </button>
+                        <button
+                            id="popup-button-restart"
+                            class="popup-button button-restart"
+                        >
+                            Restart
+                        </button>
+                        <button
+                            id="popup-button-join"
+                            class="popup-button button-join"
+                        >
+                            Join
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         <script type="py" src="./main.py" config="pyscript.toml"></script>

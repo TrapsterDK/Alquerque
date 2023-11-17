@@ -1,3 +1,4 @@
+from typing import Any
 from move import Move, target, source
 from board import (
     make_board,
@@ -36,9 +37,17 @@ result_text_element = document.getElementById("result-text")
 control_undo_element = document.getElementById("control-undo")
 menu_element = document.getElementById("menu")
 game_element = document.getElementById("game")
-overlay_element = document.getElementById("overlay")
 board_svg_element = document.getElementById("board-svg")
 board_cells_element = document.getElementById("board-cells")
+
+popup_element = document.getElementById("popup")
+popup_title_element = document.getElementById("popup-title")
+popup_input_element = document.getElementById("popup-input")
+
+popup_button_elements = document.getElementsByClassName("popup-button")
+popup_button_menu_element = document.getElementById("popup-button-menu")
+popup_button_restart_element = document.getElementById("popup-button-restart")
+popup_button_join_element = document.getElementById("popup-button-join")
 
 
 def history_length_changed(new_length: int) -> None:
@@ -123,25 +132,50 @@ add_board_svg()
 add_board_cells()
 
 
-def display_result(result: str) -> None:
-    result_text_element.textContent = result
-    overlay_element.style.visibility = "visible"
-    result_element.style.visibility = "visible"
+def display_result_popup(text: str) -> None:
+    display_popup(text, [popup_button_menu_element, popup_button_restart_element])
 
 
-def hide_result() -> None:
-    overlay_element.style.visibility = "hidden"
-    result_element.style.visibility = "hidden"
+def display_join_popup() -> None:
+    display_popup(
+        "Join game", [popup_button_menu_element, popup_button_join_element], True
+    )
+
+
+def display_create_popup() -> None:
+    display_popup(
+        "Waiting for player...",
+        [popup_button_menu_element, popup_button_join_element],
+        True,
+    )
+
+
+def display_popup(title: str, buttons: list[Any], input: bool = False) -> None:
+    popup_title_element.textContent = title
+    popup_input_element.style.display = "inline-block" if input else "none"
+
+    for child in popup_button_elements:
+        child.style.display = "none"
+
+    for button in buttons:
+        button.style.display = "inline-block"
+
+    popup_element.style.visibility = "visible"
+
+
+def hide_popup() -> None:
+    popup_element.style.visibility = "hidden"
+    popup_input_element.value = ""
 
 
 def display_menu() -> None:
-    hide_result()
+    hide_popup()
     menu_element.style.visibility = "visible"
     game_element.style.visibility = "hidden"
 
 
 def display_game() -> None:
-    hide_result()
+    hide_popup()
     menu_element.style.visibility = "hidden"
     game_element.style.visibility = "visible"
 
@@ -192,6 +226,21 @@ def setup_offline() -> None:
     display_game()
 
 
+@when("click", ".button-menu")
+def click_button_menu(event):
+    display_menu()
+
+
+@when("click", "#play-join")
+def click_button_join(event):
+    display_join_popup()
+
+
+@when("click", "#play-create")
+def click_button_create(event):
+    display_create_popup()
+
+
 @when("click", ".button-undo")
 def click_button_undo(event) -> None:
     global history, board
@@ -210,11 +259,11 @@ def click_cell(event) -> None:
 
         if is_game_over(board):
             if not black_pieces:
-                display_result("White wins!")
+                display_result_popup("White wins!")
             elif not white_pieces:
-                display_result("Black wins!")
+                display_result_popup("Black wins!")
             else:
-                display_result("Draw!")
+                display_result_popup("Draw!")
 
         return
 
@@ -226,11 +275,6 @@ def click_cell(event) -> None:
     draw_board(
         white_pieces, black_pieces, clicked, possible_moves(legal_moves_var, clicked)
     )
-
-
-@when("click", ".button-menu")
-def click_button_menu(event):
-    display_menu()
 
 
 @when("resize", "window")
