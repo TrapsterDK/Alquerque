@@ -12,13 +12,12 @@ from board import (
     is_legal,
     Board,
 )
+from minimax import next_move
 from observablelist import ObservableList
+import json
 from js import window, document, Peer  # type: ignore
 from pyscript import when  # type: ignore
 from pyodide.ffi import create_proxy  # type: ignore
-
-# peer = Peer.new()
-# peer.on("open", create_proxy(lambda id: print("My peer ID is: " + id)))
 
 
 CIRCLE_RADIUS_PERCENTAGE = 0.42
@@ -33,6 +32,7 @@ SVG_NAMESPACE = "http://www.w3.org/2000/svg"
 result_element = document.getElementById("result")
 result_text_element = document.getElementById("result-text")
 control_undo_element = document.getElementById("control-undo")
+control_restart_element = document.getElementById("control-restart")
 menu_element = document.getElementById("menu")
 game_element = document.getElementById("game")
 board_svg_element = document.getElementById("board-svg")
@@ -42,6 +42,7 @@ board_cells_active_element = document.getElementById("board-cells-active")
 popup_element = document.getElementById("popup")
 popup_title_element = document.getElementById("popup-title")
 popup_input_element = document.getElementById("popup-input")
+popup_play_as_element = document.getElementById("popup-play-as-buttons")
 
 popup_button_elements = document.getElementsByClassName("popup-button")
 popup_button_menu_element = document.getElementById("popup-button-menu")
@@ -54,13 +55,67 @@ def history_length_changed(new_length: int) -> None:
 
 
 history: ObservableList[tuple[Board, Move]] = ObservableList(history_length_changed)
+is_ai: bool
+player_is_white: bool
+player_is_black: bool
 old_move: Move | None
 board: Board
 legal_moves_var: list[Move]
 black_pieces: list[int]
 white_pieces: list[int]
 is_white: bool
-clicked: int | None
+clicked: int | None = None
+play_as_is_ai: bool
+peer: Peer = Peer.new()
+peer_id: str
+conn: Any
+is_online: bool = False
+
+
+def conn_data_handler(data: str) -> None:
+    d = json.loads(data)
+    if "is_white" in d:
+        global player_is_white, player_is_black, is_online
+        is_online = True
+        player_is_white = not d["is_white"]
+        player_is_black = d["is_white"]
+        control_undo_element.style.display = "none"
+        control_restart_element.style.display = "none"
+        setup_game()
+    elif "move" in d:
+        global old_move, history, board, legal_moves_var, black_pieces, white_pieces, is_white
+        history.append((copy(board), old_move))
+        old_move = Move(d["move"][0], d["move"][1])
+        move(old_move, board)
+        reload_board()
+
+        if is_game_over(board):
+            if not black_pieces:
+                display_result_popup("White wins!")
+            elif not white_pieces:
+                display_result_popup("Black wins!")
+            else:
+                display_result_popup("Draw!")
+
+
+def peer_open(id: str) -> None:
+    global peer_id
+    peer_id = id
+
+
+def peer_connection(connection: Any) -> None:
+    global conn
+    conn = connection
+    conn.on("data", create_proxy(conn_data_handler))
+    conn.on(
+        "open",
+        create_proxy(lambda: conn.send(json.dumps({"is_white": player_is_white}))),
+    )
+    setup_game()
+
+
+peer.on("open", create_proxy(peer_open))
+peer.on("connection", create_proxy(peer_connection))
 
 
 def draw_line(fx: int, fy: int, tx: int, ty: int, spacing: float) -> None:
@@ -143,23 +198,43 @@ def display_result_popup(text: str) -> None:
     display_popup(text, [popup_button_menu_element, popup_button_restart_element])
 
 
+def display_play_as_popup() -> None:
+    display_popup(
+        "Play as", [popup_button_menu_element, popup_button_join_element], play_as=True
+    )
+
+
 def display_join_popup() -> None:
     display_popup(
-        "Join game", [popup_button_menu_element, popup_button_join_element], True
+        "Join game", [popup_button_menu_element, popup_button_join_element], input=True
     )
 
 
-def display_create_popup() -> None:
+def display_waiting_player_popup() -> None:
     display_popup(
         "Waiting for player...",
-        [popup_button_menu_element, popup_button_join_element],
-        True,
+        [popup_button_menu_element],
+        input_str=peer_id,
+        input=True,
     )
 
 
-def display_popup(title: str, buttons: list[Any], input: bool = False) -> None:
+def display_popup(
+    title: str,
+    buttons: list[Any],
+    play_as: bool = False,
+    input: bool = False,
+    input_str: str = "",
+) -> None:
     popup_title_element.textContent = title
+    popup_play_as_element.style.display = "flex" if play_as else "none"
     popup_input_element.style.display = "inline-block" if input else "none"
+
+    popup_input_element.value = input_str
+    if input_str:
+        popup_input_element.readOnly = True
+    else:
+        popup_input_element.readOnly = False
 
     for child in popup_button_elements:
         child.style.display = "none"
@@ -237,8 +312,8 @@ def reload_board() -> None:
     draw_board(white_pieces, black_pieces, clicked, [])
 
 
-@when("click", "#play-offline, .button-restart")  # #play-ai,
-def setup_offline() -> None:
+@when("click", ".button-restart")
+def setup_game() -> None:
     global history, board, old_move
 
     old_move = None
@@ -247,32 +322,111 @@ def setup_offline() -> None:
     reload_board()
     display_game()
 
+    if is_ai and not player_is_white:
+        m = next_move(board)
+        history.append((copy(board), m))
+        old_move = m
+        move(m, board)
+        reload_board()
+
 
 @when("click", ".button-menu")
 def click_button_menu(event):
     display_menu()
 
 
+@when("click", "#play-offline")
+def click_button_play_offline(event):
+    global player_is_white, player_is_black, is_ai, is_online
+    control_undo_element.style.display = "inline-block"
+    control_restart_element.style.display = "inline-block"
+    is_online = False
+    is_ai = False
+    player_is_white = True
+    player_is_black = True
+    setup_game()
+
+
+@when("click", "#play-ai")
+def click_button_play_as(event):
+    global play_as_is_ai, is_ai
+    is_ai = True
+    play_as_is_ai = True
+    display_play_as_popup()
+
+
 @when("click", "#play-join")
-def click_button_join(event):
+def click_button_play_join(event):
+    global is_ai
+    is_ai = False
     display_join_popup()
 
 
 @when("click", "#play-create")
 def click_button_create(event):
-    display_create_popup()
+    global play_as_is_ai, is_ai
+    is_ai = False
+    play_as_is_ai = False
+    display_play_as_popup()
+
+
+def play_as_handler() -> None:
+    global is_online
+    if play_as_is_ai:
+        control_restart_element.style.display = "inline-block"
+        control_undo_element.style.display = "inline-block"
+        is_online = False
+        setup_game()
+    else:
+        control_restart_element.style.display = "none"
+        control_undo_element.style.display = "none"
+        is_online = True
+        display_waiting_player_popup()
+
+
+@when("click", "#popup-button-join")
+def click_button_join(event):
+    global conn
+    conn = peer.connect(popup_input_element.value)
+    conn.on("data", create_proxy(conn_data_handler))
+
+
+@when("click", "#popup-play-as-white")
+def click_button_play_as_white(event):
+    global player_is_white, player_is_black
+    player_is_white = True
+    player_is_black = False
+    play_as_handler()
+
+
+@when("click", "#popup-play-as-black")
+def click_button_play_as_black(event):
+    global player_is_white, player_is_black
+    player_is_white = False
+    player_is_black = True
+    play_as_handler()
 
 
 @when("click", ".button-undo")
 def click_button_undo(event) -> None:
     global history, board, old_move
     board, old_move = history.pop()
+    if is_ai and (
+        white_plays(board)
+        and not player_is_white
+        or not white_plays(board)
+        and not player_is_black
+    ):
+        board, old_move = history.pop()
     reload_board()
 
 
 @when("click", ".cell")
 def click_cell(event) -> None:
     global old_move, history, clicked, board, legal_moves_var, black_pieces, white_pieces, is_white
+    if is_white and not player_is_white or not is_white and not player_is_black:
+        return
+
     id: int = int("".join(filter(str.isdigit, event.srcElement.id)))
     if clicked and is_legal(Move(clicked, id), board):
         history.append((copy(board), old_move))
@@ -288,6 +442,23 @@ def click_cell(event) -> None:
             else:
                 display_result_popup("Draw!")
 
+        if is_ai:
+            m = next_move(board)
+            history.append((copy(board), old_move))
+            old_move = m
+            move(m, board)
+            reload_board()
+
+            if is_game_over(board):
+                if not black_pieces:
+                    display_result_popup("White wins!")
+                elif not white_pieces:
+                    display_result_popup("Black wins!")
+                else:
+                    display_result_popup("Draw!")
+        elif is_online:
+            conn.send(json.dumps({"move": [source(old_move), target(old_move)]}))
+
         return
 
     elif (is_white and id in white_pieces) or (not is_white and id in black_pieces):
@@ -300,4 +471,14 @@ def click_cell(event) -> None:
     )
 
 
+def on_click_window(event):
+    global clicked
+    if "cell-" in event.target.id:
+        return
+    if clicked:
+        clicked = None
+        draw_board(white_pieces, black_pieces, clicked, [])
+
+
+window.addEventListener("click", create_proxy(on_click_window))
 window.addEventListener("resize", create_proxy(add_board_svg))

@@ -32,7 +32,12 @@
             </div>
             <div class="center control-buttons">
                 <button class="control-button button-menu">Menu</button>
-                <button class="control-button button-restart">Restart</button>
+                <button
+                    class="control-button button-restart"
+                    id="control-restart"
+                >
+                    Restart
+                </button>
                 <button class="control-button button-undo" id="control-undo">
                     Undo
                 </button>
@@ -42,6 +47,20 @@
             <div class="overlay-background-blur">
                 <div class="popup-container center">
                     <h2 id="popup-title">Text</h2>
+                    <div id="popup-play-as-buttons">
+                        <button
+                            id="popup-play-as-white"
+                            class="popup-play-as-button"
+                        >
+                            White
+                        </button>
+                        <button
+                            id="popup-play-as-black"
+                            class="popup-play-as-button"
+                        >
+                            Black
+                        </button>
+                    </div>
                     <input class="popup-input" id="popup-input" />
                     <div id="popup-buttons">
                         <button

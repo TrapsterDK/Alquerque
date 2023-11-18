@@ -12,6 +12,7 @@ PORT = 8000
 MOVE_FILE = Path("move.py")
 WEB_DIR = Path("web/")
 GUI_DIR = Path("gui/")
+WEB_BUILD_DIR = Path("webbuild/")
 WEB_INDEX_FILE = "index.html"
 TEMP_MOVE = "move.py"
 TEMP_BOARD = "board.py"
@@ -59,7 +60,7 @@ def main() -> None:
         "-t",
         "--type",
         type=str,
-        choices=["web", "tkinter"],
+        choices=["web", "tkinter", "webbuild"],
         default="web",
         help="the version of the GUI to use",
     )
@@ -76,7 +77,11 @@ def main() -> None:
         print(f"{args.minimax}.py does not exist")
         sys.exit(1)
 
-    if args.type == "web":
+    if args.type == "webbuild":
+        WEB_BUILD_DIR.mkdir(exist_ok=True)
+        files_refresh(WEB_BUILD_DIR, args.board_representation, args.minimax)
+
+    elif args.type == "web":
         with tempfile.TemporaryDirectory() as temp_dir:
             path_temp_dir = Path(temp_dir)
 

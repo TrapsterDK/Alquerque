@@ -17,6 +17,11 @@
     --overlay-background-color: #191919;
 }
 
+* {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -213,6 +218,20 @@ line {
     width: 110px;
     height: 32px;
     font-size: 1.7rem;
+}
+
+#popup-play-as-buttons {
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: 10px;
+}
+
+.popup-play-as-button {
+    width: 200px;
+    height: 50px;
+    font-size: 2.5rem;
 }
 
 #popup-title {
