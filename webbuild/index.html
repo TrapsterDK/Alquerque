@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            rel="stylesheet"
+            href="https://pyscript.net/releases/2023.11.1/core.css"
+        />
+        <link rel="stylesheet" href="style.css" />
+        <script
+            type="module"
+            src="https://pyscript.net/releases/2023.11.1/core.js"
+        ></script>
+        <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+        <title>Alquerque</title>
+    </head>
+    <body>
+        <div id="menu" class="center">
+            <h1 class="title">Alquerque</h1>
+            <button class="menu-buttons" id="play-offline">Play offline</button>
+            <button class="menu-buttons" id="play-ai">Play vs. AI</button>
+            <button class="menu-buttons" id="play-create">Create game</button>
+            <button class="menu-buttons" id="play-join">Join game</button>
+        </div>
+        <div id="game">
+            <h1 class="title">Alquerque</h1>
+            <div class="board-container center">
+                <svg id="board-svg" class="absolute-fill"></svg>
+                <div id="board-cells" class="absolute-fill"></div>
+                <div id="board-cells-active" class="absolute-fill"></div>
+            </div>
+            <div class="center control-buttons">
+                <button class="control-button button-menu">Menu</button>
+                <button
+                    class="control-button button-restart"
+                    id="control-restart"
+                >
+                    Restart
+                </button>
+                <button class="control-button button-undo" id="control-undo">
+                    Undo
+                </button>
+            </div>
+        </div>
+        <div id="popup">
+            <div class="overlay-background-blur">
+                <div class="popup-container center">
+                    <h2 id="popup-title">Text</h2>
+                    <div id="popup-play-as-buttons">
+                        <button
+                            id="popup-play-as-white"
+                            class="popup-play-as-button"
+                        >
+                            White
+                        </button>
+                        <button
+                            id="popup-play-as-black"
+                            class="popup-play-as-button"
+                        >
+                            Black
+                        </button>
+                    </div>
+                    <input class="popup-input" id="popup-input" />
+                    <div id="popup-buttons">
+                        <button
+                            id="popup-button-menu"
+                            class="popup-button button-menu"
+                        >
+                            Menu
+                        </button>
+                        <button
+                            id="popup-button-restart"
+                            class="popup-button button-restart"
+                        >
+                            Restart
+                        </button>
+                        <button
+                            id="popup-button-join"
+                            class="popup-button button-join"
+                        >
+                            Join
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="py" src="./main.py" config="pyscript.toml"></script>
+    </body>
+</html>

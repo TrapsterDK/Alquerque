@@ -1,0 +1,257 @@
+/* General styles */
+:root {
+    --default-color: #fff;
+
+    --button-color: #fff;
+    --button-text-color: #000;
+    --button-hover-color: #000;
+    --button-hover-text-color: #fff;
+    --button-disabled-color: #8e8e8e;
+
+    --piece-black-color: #000;
+    --piece-white-color: #fff;
+    --piece-old-color: #ffbf00;
+    --piece-possible-moves-color: #00cc00;
+
+    --background-color: #303030;
+    --overlay-background-color: #191919;
+}
+
+* {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Arial";
+    font-weight: 600;
+    color: var(--default-color);
+    background: var(--background-color);
+    width: 100%;
+    height: 100%;
+}
+
+button {
+    background-color: var(--button-color);
+    color: var(--button-text-color);
+    cursor: pointer;
+    border: none;
+}
+
+button:disabled {
+    background-color: var(--button-disabled-color);
+    color: var(--button-text-color);
+    cursor: not-allowed;
+}
+
+button:hover:enabled {
+    background-color: var(--button-hover-color);
+    color: var(--button-hover-text-color);
+}
+
+.center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.title {
+    font-size: 3em;
+    text-align: center;
+    margin-bottom: 0;
+}
+
+.absolute-fill {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+/* Game styles */
+
+#game {
+    visibility: hidden;
+}
+
+.board-container {
+    width: max(500px, 80vh);
+    height: max(500px, 80vh);
+}
+
+#board-svg {
+    stroke: #3c3c3c;
+    fill: #3c3c3c;
+}
+circle {
+    stroke-width: 0;
+}
+line {
+    stroke-width: 12;
+}
+
+#board-cells,
+#board-cells-active {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+}
+
+#board-cells-active {
+    pointer-events: none;
+}
+
+.cell {
+    place-self: center;
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+}
+
+.cell-black {
+    background-color: var(--piece-black-color);
+}
+
+.cell-white {
+    background-color: var(--piece-white-color);
+}
+
+.cell-active {
+    place-self: center;
+    width: 42%;
+    height: 42%;
+    border-radius: 50%;
+}
+
+.cell-clicked {
+    background-color: var(--piece-clicked-color);
+}
+
+.cell-possible-moves {
+    background-color: var(--piece-possible-moves-color);
+}
+
+.cell-old-move {
+    background-color: var(--piece-old-color);
+    background-color: var(--piece-old-color);
+}
+
+.control-buttons {
+    position: absolute;
+    left: 50%;
+    top: 93%;
+    width: max(400px, 60vh);
+    height: 50px;
+    text-align: center;
+}
+
+.control-button {
+    width: 30%;
+    height: 50px;
+    margin-left: 5px;
+    margin-right: 5px;
+    font-size: 2rem;
+}
+
+/* Menu styles */
+
+#menu {
+    width: 400px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: 20px;
+}
+
+.menu-buttons {
+    width: 400px;
+    height: 80px;
+    border: none;
+    font-size: 3rem;
+    cursor: pointer;
+}
+
+/* Popup styles */
+
+#popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    visibility: hidden;
+}
+
+.overlay-background-blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+    z-index: 1;
+}
+
+.popup-container {
+    width: max(450px, 50vh);
+    background-color: var(--overlay-background-color);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    row-gap: 30px;
+    padding: 50px;
+}
+
+#popup-buttons {
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: 25px;
+}
+
+.popup-button {
+    width: 110px;
+    height: 32px;
+    font-size: 1.7rem;
+}
+
+#popup-play-as-buttons {
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: 10px;
+}
+
+.popup-play-as-button {
+    width: 200px;
+    height: 50px;
+    font-size: 2.5rem;
+}
+
+#popup-title {
+    font-size: 3rem;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    line-height: 0.8;
+}
+
+.popup-input {
+    width: 60%;
+    height: 40px;
+    font-size: 2rem;
+    text-align: center;
+}
+
+/*
+.py-error {
+    visibility: hidden;
+}
+*/
