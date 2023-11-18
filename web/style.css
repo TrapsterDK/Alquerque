@@ -10,8 +10,8 @@
 
     --piece-black-color: #000;
     --piece-white-color: #fff;
-    --piece-clicked-color: #00ff00;
-    --piece-possible-moves-color: #90ee90;
+    --piece-old-color: #ffbf00;
+    --piece-possible-moves-color: #00cc00;
 
     --background-color: #303030;
     --overlay-background-color: #191919;
@@ -54,10 +54,6 @@ button:hover:enabled {
     transform: translate(-50%, -50%);
 }
 
-.hidden {
-    visibility: hidden;
-}
-
 .title {
     font-size: 3em;
     text-align: center;
@@ -84,12 +80,22 @@ button:hover:enabled {
 #board-svg {
     stroke: #3c3c3c;
     fill: #3c3c3c;
-    stroke-width: 8;
+}
+circle {
+    stroke-width: 0;
+}
+line {
+    stroke-width: 12;
 }
 
-#board-cells {
+#board-cells,
+#board-cells-active {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
+}
+
+#board-cells-active {
+    pointer-events: none;
 }
 
 .cell {
@@ -98,17 +104,33 @@ button:hover:enabled {
     height: 70%;
     border-radius: 50%;
 }
+
 .cell-black {
     background-color: var(--piece-black-color);
 }
+
 .cell-white {
     background-color: var(--piece-white-color);
 }
+
+.cell-active {
+    place-self: center;
+    width: 42%;
+    height: 42%;
+    border-radius: 50%;
+}
+
 .cell-clicked {
     background-color: var(--piece-clicked-color);
 }
+
 .cell-possible-moves {
     background-color: var(--piece-possible-moves-color);
+}
+
+.cell-old-move {
+    background-color: var(--piece-old-color);
+    background-color: var(--piece-old-color);
 }
 
 .control-buttons {

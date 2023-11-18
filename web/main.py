@@ -21,14 +21,13 @@ from pyodide.ffi import create_proxy  # type: ignore
 # peer.on("open", create_proxy(lambda id: print("My peer ID is: " + id)))
 
 
-CIRCLE_RADIUS_PERCENTAGE = 0.4
+CIRCLE_RADIUS_PERCENTAGE = 0.42
 BOARD_WIDTH = 5
 CLASS_CELL = "cell"
 CLASS_CELL_BLACK = "cell-black"
 CLASS_CELL_WHITE = "cell-white"
 CLASS_CELL_POSSIBLE = "cell-possible-moves"
-CLASS_CELL_CLICKED = "cell-clicked"
-CLASS_HIDDEN = "hidden"
+CLASS_CELL_OLD = "cell-old-move"
 SVG_NAMESPACE = "http://www.w3.org/2000/svg"
 
 result_element = document.getElementById("result")
@@ -38,6 +37,7 @@ menu_element = document.getElementById("menu")
 game_element = document.getElementById("game")
 board_svg_element = document.getElementById("board-svg")
 board_cells_element = document.getElementById("board-cells")
+board_cells_active_element = document.getElementById("board-cells-active")
 
 popup_element = document.getElementById("popup")
 popup_title_element = document.getElementById("popup-title")
@@ -53,7 +53,8 @@ def history_length_changed(new_length: int) -> None:
     control_undo_element.disabled = new_length == 0
 
 
-history: ObservableList[Board] = ObservableList(history_length_changed)
+history: ObservableList[tuple[Board, Move]] = ObservableList(history_length_changed)
+old_move: Move | None
 board: Board
 legal_moves_var: list[Move]
 black_pieces: list[int]
@@ -74,9 +75,9 @@ def draw_line(fx: int, fy: int, tx: int, ty: int, spacing: float) -> None:
 
 def draw_circle(x: int, y: int, spacing: int, radius: int) -> None:
     circle = document.createElementNS(SVG_NAMESPACE, "circle")
-    circle.setAttribute("cx", f"{x * spacing + spacing / 2}")
-    circle.setAttribute("cy", f"{y * spacing + spacing / 2}")
-    circle.setAttribute("r", f"{radius}")
+    circle.setAttribute("cx", f"{int(x * spacing + spacing / 2)}")
+    circle.setAttribute("cy", f"{int(y * spacing + spacing / 2)}")
+    circle.setAttribute("r", f"{int(radius)}")
 
     board_svg_element.appendChild(circle)
 
@@ -121,10 +122,17 @@ def add_board_cells() -> None:
     piece = document.createElement("div")
     piece.classList.add("cell")
 
+    cell_active = document.createElement("div")
+    cell_active.classList.add("cell-active")
+
     for i in range(1, 26):
         addpiece = piece.cloneNode(False)
-        addpiece.id = i
+        addpiece.id = f"cell-{str(i)}"
         board_cells_element.appendChild(addpiece)
+
+        addactive = cell_active.cloneNode(False)
+        addactive.id = f"cell-active-{str(i)}"
+        board_cells_active_element.appendChild(addactive)
 
 
 add_board_svg()
@@ -180,7 +188,13 @@ def display_game() -> None:
 
 
 def cell_set(id: int, class_type: str) -> None:
-    document.getElementById(id).classList = f"{CLASS_CELL} {class_type}"
+    document.getElementById(f"cell-{str(id)}").className = "cell " + class_type
+
+
+def cell_active_set(id: int, class_type: str) -> None:
+    document.getElementById(f"cell-active-{str(id)}").className = (
+        "cell-active " + class_type
+    )
 
 
 def possible_moves(legal_moves_var: list[Move], clicked: int) -> list[Move]:
@@ -194,19 +208,27 @@ def draw_board(
     white: list[int], black: list[int], clicked: int, possible_moves: list[Move]
 ) -> None:
     for i in range(1, 26):
-        cell_set(i, CLASS_HIDDEN)
+        cell_set(i, "")
+        cell_active_set(i, "")
+
     for i in white:
         cell_set(i, CLASS_CELL_WHITE)
     for i in black:
         cell_set(i, CLASS_CELL_BLACK)
+
+    if old_move:
+        cell_active_set(source(old_move), CLASS_CELL_OLD)
+        cell_active_set(target(old_move), CLASS_CELL_OLD)
+
     for m in possible_moves:
-        cell_set(target(m), CLASS_CELL_POSSIBLE)
-    if clicked is not None:
-        cell_set(clicked, CLASS_CELL_CLICKED)
+        cell_active_set(target(m), CLASS_CELL_POSSIBLE)
+
+    if clicked:
+        cell_set(clicked, CLASS_CELL_POSSIBLE)
 
 
 def reload_board() -> None:
-    global legal_moves_var, black_pieces, white_pieces, is_white, clicked
+    global old_move, legal_moves_var, black_pieces, white_pieces, is_white, clicked
     legal_moves_var = legal_moves(board)
     black_pieces = black(board)
     white_pieces = white(board)
@@ -217,8 +239,9 @@ def reload_board() -> None:
 
 @when("click", "#play-offline, .button-restart")  # #play-ai,
 def setup_offline() -> None:
-    global history, board
+    global history, board, old_move
 
+    old_move = None
     history.clear()
     board = make_board()
     reload_board()
@@ -242,17 +265,18 @@ def click_button_create(event):
 
 @when("click", ".button-undo")
 def click_button_undo(event) -> None:
-    global history, board
-    board = history.pop()
+    global history, board, old_move
+    board, old_move = history.pop()
     reload_board()
 
 
 @when("click", ".cell")
 def click_cell(event) -> None:
-    global history, clicked, board, legal_moves_var, black_pieces, white_pieces, is_white
-    id: int = int(event.srcElement.id)
+    global old_move, history, clicked, board, legal_moves_var, black_pieces, white_pieces, is_white
+    id: int = int("".join(filter(str.isdigit, event.srcElement.id)))
     if clicked and is_legal(Move(clicked, id), board):
-        history.append(copy(board))
+        history.append((copy(board), old_move))
+        old_move = Move(clicked, id)
         move(Move(clicked, id), board)
         reload_board()
 
