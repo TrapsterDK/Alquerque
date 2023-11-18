@@ -13,10 +13,9 @@ from board import (
     Board,
 )
 from observablelist import ObservableList
-from js import document, Peer  # type: ignore
+from js import window, document, Peer  # type: ignore
 from pyscript import when  # type: ignore
-
-# from pyodide.ffi import create_proxy  # type: ignore
+from pyodide.ffi import create_proxy  # type: ignore
 
 # peer = Peer.new()
 # peer.on("open", create_proxy(lambda id: print("My peer ID is: " + id)))
@@ -82,7 +81,7 @@ def draw_circle(x: int, y: int, spacing: int, radius: int) -> None:
     board_svg_element.appendChild(circle)
 
 
-def add_board_svg() -> None:
+def add_board_svg(*args) -> None:
     board_svg_element.innerHTML = ""
     board_size = board_svg_element.clientWidth
     circle_spacing = board_size / BOARD_WIDTH
@@ -277,6 +276,4 @@ def click_cell(event) -> None:
     )
 
 
-@when("resize", "window")
-def resize_window(event):
-    draw_board()
+window.addEventListener("resize", create_proxy(add_board_svg))
