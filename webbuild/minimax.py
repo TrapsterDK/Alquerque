@@ -12,74 +12,56 @@ from move import Move
 
 
 def evaluate(board: Board) -> float:
-    """Evaluates the board.
-
-    Args:
-        board (Board): Board object to evaluate.
-
-    Returns:
-        int: Score of the board.
-    """
-
-    # black wins
+    """Evaluates the board."""
     if white(board) == 0:
         return -float("inf")
-    # white wins
     if black(board) == 0:
         return float("inf")
+    if is_game_over(board):
+        return 0
 
-    score = 0
-    score += len(white(board)) - len(black(board))
+    white_pieces = len(white(board))
+    black_pieces = len(black(board))
+
+    # Adjust values based on piece values and board control
+    score = white_pieces - black_pieces
     return score
 
 
-def minimax_alpha_beta(
-    board: Board, depth: int, alpha: int, beta: int, maximizing_player: bool
-) -> int:
-    """Minimax algorithm with alpha-beta pruning.
-
-    Args:
-        board (Board): Board object to evaluate.
-        depth (int): Eepth of the search tree.
-        alpha (int): Alpha value.
-        beta (int): Beta value.
-        maximizing_player (bool): True if maximizing player, False if minimizing player.
-
-    Returns:
-        int: Best score.
-    """
+def negamax(board: Board, depth: int, alpha, beta, player) -> float:
     if depth == 0 or is_game_over(board):
         return evaluate(board)
 
-    if maximizing_player:
-        best_score = -float("inf")
-        for m in legal_moves(board):
-            board_copy = copy(board)
-            move(m, board_copy)
-            score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, False)
-            best_score = max(best_score, score)
-            alpha = max(alpha, score)
-            if alpha >= beta:
-                break
-        return best_score
-    else:
-        best_score = float("inf")
-        for m in legal_moves(board):
-            board_copy = copy(board)
-            move(m, board_copy)
-            score = minimax_alpha_beta(board_copy, depth - 1, alpha, beta, True)
-            best_score = min(best_score, score)
-            beta = min(beta, score)
-            if alpha >= beta:
-                break
-        return best_score
+    score = float("-inf")
+    for m in legal_moves(board):
+        new_board = copy(board)
+        move(m, new_board)
+        score = max(score, -negamax(new_board, depth - 1, -beta, -alpha, -player))
+        alpha = max(alpha, score)
+        if alpha >= beta:
+            break
+
+    print(f"Score: {score}")
+    return score
 
 
-def next_move(b: Board, n: int = 7) -> Move:
-    """Returns the next move for the autoplayer."""
-    return max(
-        legal_moves(b),
-        key=lambda m: minimax_alpha_beta(
-            b, n, -float("inf"), float("inf"), white_plays(b)
-        ),
-    )
+def next_move(b: Board, depth: int = 5) -> Move:
+    """Returns the best move for the given board and depth."""
+    best_score = float("-inf")
+    best_move = None
+    for m in legal_moves(b):
+        new_board = copy(b)
+        move(m, new_board)
+        score = -negamax(
+            new_board,
+            depth - 1,
+            float("-inf"),
+            float("inf"),
+            1,
+        )
+        if score > best_score:
+            best_score = score
+            best_move = m
+
+    print(f"Best move: {best_move} with score {best_score}")
+    return best_move

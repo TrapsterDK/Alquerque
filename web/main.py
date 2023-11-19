@@ -15,6 +15,7 @@ from board import (
 from minimax import next_move
 from observablelist import ObservableList
 import json
+import asyncio
 from js import window, document, Peer  # type: ignore
 from pyscript import when  # type: ignore
 from pyodide.ffi import create_proxy  # type: ignore
@@ -421,6 +422,30 @@ def click_button_undo(event) -> None:
     reload_board()
 
 
+async def ai_move():
+    global old_move, history, board, legal_moves_var, black_pieces, white_pieces, is_white
+    draw_board(
+        white_pieces,
+        black_pieces,
+        clicked,
+        possible_moves(legal_moves_var, clicked),
+    )
+
+    m = next_move(board)
+    history.append((copy(board), old_move))
+    old_move = m
+    move(m, board)
+    reload_board()
+
+    if is_game_over(board):
+        if not black_pieces:
+            display_result_popup("White wins!")
+        elif not white_pieces:
+            display_result_popup("Black wins!")
+        else:
+            display_result_popup("Draw!")
+
+
 @when("click", ".cell")
 def click_cell(event) -> None:
     global old_move, history, clicked, board, legal_moves_var, black_pieces, white_pieces, is_white
@@ -441,21 +466,9 @@ def click_cell(event) -> None:
                 display_result_popup("Black wins!")
             else:
                 display_result_popup("Draw!")
+        elif is_ai:
+            asyncio.ensure_future(ai_move())
 
-        if is_ai:
-            m = next_move(board)
-            history.append((copy(board), old_move))
-            old_move = m
-            move(m, board)
-            reload_board()
-
-            if is_game_over(board):
-                if not black_pieces:
-                    display_result_popup("White wins!")
-                elif not white_pieces:
-                    display_result_popup("Black wins!")
-                else:
-                    display_result_popup("Draw!")
         elif is_online:
             conn.send(json.dumps({"move": [source(old_move), target(old_move)]}))
 
