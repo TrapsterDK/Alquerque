@@ -200,9 +200,7 @@ def display_result_popup(text: str) -> None:
 
 
 def display_play_as_popup() -> None:
-    display_popup(
-        "Play as", [popup_button_menu_element, popup_button_join_element], play_as=True
-    )
+    display_popup("Play as", [popup_button_menu_element], play_as=True)
 
 
 def display_join_popup() -> None:
